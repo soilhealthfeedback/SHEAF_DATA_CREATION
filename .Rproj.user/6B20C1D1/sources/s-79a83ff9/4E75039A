@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1545098249314.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3941898050",
+    "id" : "4E75039A",
+    "lastKnownWriteTime" : 1544502772,
+    "last_content_update" : 1544502772,
+    "path" : "/nfs/soilsesfeedback-data/CODE/SHEAF_EDA/SHEAF_eda.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

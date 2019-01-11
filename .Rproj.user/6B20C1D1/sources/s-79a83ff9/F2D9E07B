@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1545097773316.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F2D9E07B",
+    "lastKnownWriteTime" : 1545342091,
+    "last_content_update" : 1545342091084,
+    "path" : "/nfs/soilsesfeedback-data/CODE/SHEAF_EDA/SHEAF_NRI_county_map.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "144,34",
+        "scrollLine" : "135"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
