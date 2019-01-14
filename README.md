@@ -1,7 +1,7 @@
 EXPLORATORY DATA ANALYSIS AND DATA EXTRACTION
 =======
 
-The function below combines all datasets into one data frame.  datasets that have factors that are pertinent 
+The function below combines all datasets into one data frame.  Datasets that have factors that are pertinent 
 (farming practices, types of ag census categories), are transformed into columns.  In this case, there are some values that are NA 
 for some factored columns, which means that, for that county/year/state combo, there was no value for that factor.
 
