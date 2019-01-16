@@ -18,7 +18,7 @@ library (RCurl)
 library(maptools)
 library(tidyr)
 
-SHEAF_model_data_creation <- function(crop) {
+SHEAF_model_data_creation_local <- function(crop) {
   
   options(scipen=999)
   
