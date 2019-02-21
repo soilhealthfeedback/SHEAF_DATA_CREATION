@@ -1,3 +1,8 @@
+#SEM Measurement Model
+#Need to construct a SEM Measurement Model in our first phase of SEM development
+#A Measurement model examines the relationships of manifest (observed) variables to their latent variables.
+#we "Saturate" the SEM model intially in order to 
+
 #library(shiny)
 #library(shinyAce)
 library(psych)
@@ -9,8 +14,25 @@ library(semPlot)
 
 
 
+
 data1 <- read.csv("/nfs/soilsesfeedback-data/Model_data/MIDWEST_CORN_SOYBEANS_Model_acres.csv")
 data1 <- data1[,-87] #remove FIPS
+data1 <- data1[,-1] #remove ID
+
+data1_nonscaled <- read.csv("/nfs/soilsesfeedback-data/Model_data/MIDWEST_CORN_SOYBEANS_Model_acres_nonscaled.csv")
+data1_nonscaled <- data1_nonscaled[,-87] #remove FIPS
+data1_nonscaled <- data1_nonscaled[,-1] #remove ID
+
+
+data2 <- data1[,4:185]
+data2 <- data.frame(data2)
+
+data2_nonscaled <- data1_nonscaled[,4:185]
+data2_nonscaled <- data.frame(data2_nonscaled)
+
+chisq.test(data2_nonscaled) 
+
+
 
 myModel <- '
 # measurement model
@@ -19,7 +41,6 @@ myModel <- '
 #ex: Weather is measured by PDSI_Totals + RMA_Acres
 
 WEATHER =~ PDSI_TOTALS + RMA_Acres
-Crop_Indemnity_Counts =~ RMA_Count
 DIVERSITY =~ notill_farms + constill_farms
 Management =~ Residue.and.Tillage.Management..No.Till + Residue.and.Tillage.Management..Reduced.Till
 EQIP =~ Conservation.Crop.Rotation + Cover.Crop 
@@ -31,13 +52,13 @@ OPERATORS..NATIVE.HAWAIIAN.OR.OTHER.PACIFIC.ISLANDER...NUMBER.OF.OPERATORS + OPE
 
 # regressions
 
-Weather ~ Diversity + Management
+WEATHER ~ Diversity + Management
 AgCensus ~ Management + Weather + Race + Gender + Diversity
 AgCensus <~ Weather
 # residual correlations
 notill_farms ~~ constill_farms
 Drought ~~ Heat
-Diversity ~~ RMA_Count
+DIVERSITY ~~ RMA_Count
 Conservation.Crop.Rotation ~~ Cover.Crop 
 AGCENSUS_CC_Cropland_Acres_Ratio ~ Diversity + Gender + Race + Weather + RMA_Count'
 #y3 ~~ y7
