@@ -4,6 +4,7 @@
 #  Initial regional analysis is for Illinois, Indiana, Iowa, Michigan, Minnesota, Missouri, Ohio, and Wisconsin
 #--author: Erich Seamon, University of Idaho
 #--date: October 2018
+#--MB change
 
 library(rgdal)
 library(leaflet)
