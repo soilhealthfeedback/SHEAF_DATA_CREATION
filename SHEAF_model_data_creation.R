@@ -15,7 +15,7 @@
 #--example
 #
 #--SHEAF_model_data_creation <- ("WHEAT", "acres")
-#we are awesome descriptors 
+#we are awesome descriptors  
 
 library(rgdal)
 library(leaflet)
