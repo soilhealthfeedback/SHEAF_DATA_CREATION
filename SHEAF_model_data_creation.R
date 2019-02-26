@@ -304,7 +304,6 @@ SHEAF_model_data_creation <- function(losstype) {
   
   merge7$AGCENSUS_CC_Cropland_Acres_Ratio <- merge7$AGCENSUS_cc_acres / merge7$AGCENSUS_Cropland_Acres
   
-  
   #WRITE FILE TO MODEL_DATA FOLDER FOR SEM ANALYSIS
   
   #create name of crops used for RMA - example - for Midwest, we are using corn and soybeans
