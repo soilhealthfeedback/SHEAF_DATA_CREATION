@@ -14,8 +14,8 @@
 #
 #--example
 #
-#--SHEAF_model_data_creation <- ("WHEAT", "acres")
-#we are awesome descriptors  
+SHEAF_model_data_creation <- ("WHEAT", "acres")
+
 
 library(rgdal)
 library(leaflet)
@@ -226,32 +226,54 @@ SHEAF_model_data_creation <- function(losstype) {
   
   
   
-  library(reshape2) ; damage_loss <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Loss"), sum)
-  library(reshape2) ; damage_lossperacre <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Lossperacre"), sum)
-  library(reshape2) ; damage_lossperclaim <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Lossperclaim"), sum)
-  library(reshape2) ; damage_acres <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Acres"), sum)
+  library(reshape2) ; damage_Loss <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Loss"), sum)
+  library(reshape2) ; damage_Lossperacre <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Lossperacre"), sum)
+  library(reshape2) ; damage_Lossperclaim <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Lossperclaim"), sum)
+  library(reshape2) ; damage_Acres <- dcast(damage, State + County + Year + Commodity ~ Damagecause, value.var = c("Acres"), sum)
  
   #damage <- spread(damage, Damagecause, Loss_damagecause)
   
-  crop_damage_acres <- subset(damage_acres, Commodity == croplist)
-  crop_damage_loss <- subset(damage_loss, Commodity == croplist)
-  crop_damage_lossperacre <- subset(damage_lossperacre, Commodity == croplist)
-  crop_damage_lossperclaim <- subset(damage_lossperclaim, Commodity == croplist)
+  crop_damage_Acres <- subset(damage_acres, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Loss <- subset(damage_loss, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Lossperacre <- subset(damage_lossperacre, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Lossperclaim <- subset(damage_lossperclaim, Commodity == "CORN" | Commodity == "SOYBEANS")
   
-  crop_damage_acres <- aggregate(crop_damage_acres[,5:38], by = list(crop_damage_acres$State, crop_damage_acres$County, crop_damage_acres$Year), FUN = 'sum' )
-  colnames(crop_damage_acres)[1:3] <- c("State", "County", "Year")
-  crop_damage_loss <- aggregate(crop_damage_loss[,5:38], by = list(crop_damage_loss$State, crop_damage_loss$County, crop_damage_loss$Year), FUN = 'sum' )
-  colnames(crop_damage_loss)[1:3] <- c("State", "County", "Year")
-  crop_damage_lossperacre <- aggregate(crop_damage_lossperacre[,5:38], by = list(crop_damage_lossperacre$State, crop_damage_lossperacre$County, crop_damage_lossperacre$Year), FUN = 'sum' )
-  colnames(crop_damage_lossperacre)[1:3] <- c("State", "County", "Year")
-   crop_damage_lossperclaim <- aggregate(crop_damage_lossperclaim[,5:38], by = list(crop_damage_lossperclaim$State, crop_damage_lossperclaim$County, crop_damage_lossperclaim$Year), FUN = 'sum' )
-   colnames(crop_damage_lossperclaim)[1:3] <- c("State", "County", "Year")
+  crop_damage_Acres <- aggregate(crop_damage_Acres[,5:38], by = list(crop_damage_Acres$State, crop_damage_Acres$County, crop_damage_Acres$Year), FUN = 'sum' )
+  colnames(crop_damage_Acres)[1:3] <- c("State", "County", "Year")
+  crop_damage_Loss <- aggregate(crop_damage_Loss[,5:38], by = list(crop_damage_Loss$State, crop_damage_Loss$County, crop_damage_Loss$Year), FUN = 'sum' )
+  colnames(crop_damage_Loss)[1:3] <- c("State", "County", "Year")
+  crop_damage_Lossperacre <- aggregate(crop_damage_Lossperacre[,5:38], by = list(crop_damage_Lossperacre$State, crop_damage_Lossperacre$County, crop_damage_Lossperacre$Year), FUN = 'sum' )
+  colnames(crop_damage_Lossperacre)[1:3] <- c("State", "County", "Year")
+   crop_damage_Lossperclaim <- aggregate(crop_damage_Lossperclaim[,5:38], by = list(crop_damage_Lossperclaim$State, crop_damage_Lossperclaim$County, crop_damage_Lossperclaim$Year), FUN = 'sum' )
+   colnames(crop_damage_Lossperclaim)[1:3] <- c("State", "County", "Year")
    
   
+   countyFIPS <- read.csv("https://nextcloud.sesync.org/index.php/s/wcFmKrSZW6Pr6D2/download")
+   
+   countyFIPS$FIPS <- sprintf("%05d",countyFIPS$FIPS)
+   
+   ag_land_corn <- read.csv("https://nextcloud.sesync.org/index.php/s/P92Df7gYgXKjYXa/download")
+   colnames(ag_land_corn) <- c("FIPS", "countycode", "row", "column", "type", "State", "Statecode", "label", "County", "cpubval", "Cropland_Acres", "Percent")
+   
+   ag_land_corn$Cropland_Acres <- as.numeric(as.character(ag_land_corn$Cropland_Acres))
+   
+   ag_land_corn2 <- subset(ag_land_corn, Cropland_Acres != "NA")
+   
+   
+   alc <- merge(ag_land_corn2, countyFIPS, by  = "FIPS")
+   
+   alc2 <- aggregate(alc$Cropland_Acres, by = list(alc$STATE_NAME, alc$NAME, alc$FIPS), FUN = 'mean')
+   colnames(alc2) <- c("State", "County", "FIPS", "AGCENSUS_Cropland_Acres")
+   alc2$FIPS <- sprintf("%05d",alc2$FIPS)
+ 
+   
   #climate - pdsi
   
       pdsi_moderate_drought_2007_2012 <- read.csv("https://nextcloud.sesync.org/index.php/s/TYa9pBNQHBc4efj/download")
-   countyFIPS <- read.csv("https://nextcloud.sesync.org/index.php/s/wcFmKrSZW6Pr6D2/download")
+   
+      
+      
+ 
    
    pdsi <- merge(pdsi_moderate_drought_2007_2012, countyFIPS, by  = "FIPS")
    
@@ -272,9 +294,22 @@ SHEAF_model_data_creation <- function(losstype) {
    #cash rent
    
    cash_rent <- read.csv("https://nextcloud.sesync.org/index.php/s/rbGosZCQoqT5S8T/download")
-   cash_rent <- cash_rent[,c(2,5,6,7,8,9,10,11,12)]
+   #cash_rent <- cash_rent[,c(2,5,6,7,8,9,10,11,12)]
+   cash_rent <- cash_rent[,c(3,6,7,8,9,10,11,12,13)]
+   
    colnames(cash_rent) <- c("Year", "RENT_Irrigated_Rent_Cropland", "RENT_NonIrrigated_Rent_Cropland", "RENT_Pastureland", "RENT_average", "State", "County", "RENT_Total_Cropland_Acres", "RENT_Total")
   
+   rented_land <- read.csv("https://nextcloud.sesync.org/index.php/s/wWnWqPHwWXPytmQ/download")
+   
+   rented_land$FIPS <- sprintf("%05d",rented_land$FIPS)
+   
+   rented_land <- merge(rented_land, countyFIPS, by  = "FIPS")
+   
+   rented_land <- rented_land[-29]
+   rented_land_revised <- rented_land[,25:30]
+   #rented_land_revised <- cbind(rented_land$acres.rented.2012, rented_land$Percent.rented.2012, rented_land$STATE_NAME, rented_land$NAME)
+   colnames(rented_land_revised) <- c("RENT_acres.rented.2007", "RENT_acres.rented.2012", "RENT_percent.rented.2007",  "RENT_Percent.rented.2012", "State", "County")
+   
    #--MERGE!
   
   library(tidyverse)
@@ -286,7 +321,9 @@ SHEAF_model_data_creation <- function(losstype) {
   merge6 <- merge(merge5, commodity_loss_total, by = c("State", "County", "Year"))
   merge6a <- merge(merge6, pdsi, by = c("State", "County"))
   merge6b <- merge(merge6a, cash_rent, by = c("State", "County", "Year"))
-  merge7 <- merge(merge6b, cdl_div2, by = c("State", "County"))
+  merge6c <- merge(merge6b, cdl_div2, by = c("State", "County"))
+  merge7 <- merge(merge6c, rented_land_revised,  by = c("State", "County"))
+  
   
   
   
@@ -312,7 +349,7 @@ SHEAF_model_data_creation <- function(losstype) {
   
   library( taRifx )
   #make sure all exogenous variables are numeric and state and county are factors
-  merge8 <- japply( merge7[,4:211], which(sapply(merge7[,4:211], class)=="factor"), as.numeric )
+  merge8 <- japply( merge7[,4:215], which(sapply(merge7[,4:215], class)=="factor"), as.numeric )
   merge9 <- japply( merge8, which(sapply(merge8, class)=="integer"), as.numeric )
   
   merge9 <- cbind(merge7$State, merge7$County, merge7$Year, merge9)
@@ -342,15 +379,22 @@ SHEAF_model_data_creation <- function(losstype) {
   
   merge9 <- remove_zero_cols(merge9)
   
-  merge9 <- merge9[,-86] #remove FIPS
+  merge9 <- merge9[,-88] #remove FIPS
+  merge9 <- merge9[,-76] #remove FIPS
+  
+  
+  merge9$AGCENSUS_CC_Cropland_Acres_Ratio <- log10(merge9$AGCENSUS_CC_Cropland_Acres_Ratio)
+  merge9$AGCENSUS_NOTILL_Cropland_Acres_Ratio <- log10(merge9$AGCENSUS_notill_acres/data2$AGCENSUS_Cropland_Acres)
   
   scaled_merge10 <- merge9[, -c(1:3)] <- scale(merge9[, -c(1:3)], center = TRUE, scale = TRUE)
   
   
-  #write the combined file to the model_data location for SEM
-  write.csv(merge9, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model_", losstype, "_nonscaled.csv", sep=""))
-  write.csv(scaled_merge10, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model_", losstype, "_scaled.csv", sep=""))
-  
 }
+  
+  #write the combined file to the model_data location for SEM
+  write.csv(merge9, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model2_", losstype, "_nonscaled.csv", sep=""))
+  write.csv(scaled_merge10, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model2_", losstype, "_scaled.csv", sep=""))
+  
+
 
 
