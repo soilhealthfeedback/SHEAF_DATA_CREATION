@@ -86,5 +86,5 @@ head(racediv)
 racediv <- lapply(racediv, function(x) as.numeric(as.character(x))) # convert to numberic variables
 summary(racediv)
 
-write.csv(racediv, file = paste("/nfs/soilsesfeedback-data/data/census/racediversity.csv", sep=""))
+write.csv(racediv, file = paste("/nfs/soilsesfeedback-data/data_transforms/census_racediversity.csv", sep=""))
 
