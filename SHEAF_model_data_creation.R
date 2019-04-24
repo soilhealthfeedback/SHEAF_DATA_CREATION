@@ -14,7 +14,7 @@
 #
 #--example
 #
-SHEAF_model_data_creation <- ("WHEAT", "acres")
+#SHEAF_model_data_creation <- ("WHEAT", "acres")
 
 
 library(rgdal)
@@ -142,6 +142,25 @@ SHEAF_model_data_creation <- function(losstype) {
   #setwd("/nfs/soilsesfeedback-data/data/eqip")
   #eqip <- read.csv("eqip.csv")
   
+  #EQIP-CSP
+  
+  eqip_csv <- read.csv("https://files.sesync.org/index.php/s/5Rjpp4z5xe7KCC8/download")
+  eqip_csp$County <- tolower(eqip_csp$County)
+  eqip_csp$County <- sapply(eqip_csp$County, simpleCap)
+  
+  eqip_cons_security <- read.csv("https://files.sesync.org/index.php/s/ZsX6SYFmc8Tsr77/download")
+  eqip_cons_security$County <- tolower(eqip_cons_security$County)
+  eqip_cons_security$County <- sapply(eqip_cons_security$County, simpleCap)
+  eqip_cons_security <- eqip_cons_security[,2:8]
+  
+  eqip_cons_steward <- read.csv("https://files.sesync.org/index.php/s/oHnCkS5sDFgX44c/download")
+  eqip_cons_steward$County <- tolower(eqip_cons_steward$County)
+  eqip_cons_steward$County <- sapply(eqip_cons_steward$County, simpleCap)
+  eqip_cons_steward <- eqip_cons_steward[,2:8]
+  
+  
+  
+  
   #CENSUS
   
   #census load - best if you are NOT on SESYNC rstudio server
@@ -233,10 +252,10 @@ SHEAF_model_data_creation <- function(losstype) {
  
   #damage <- spread(damage, Damagecause, Loss_damagecause)
   
-  crop_damage_Acres <- subset(damage_acres, Commodity == "CORN" | Commodity == "SOYBEANS")
-  crop_damage_Loss <- subset(damage_loss, Commodity == "CORN" | Commodity == "SOYBEANS")
-  crop_damage_Lossperacre <- subset(damage_lossperacre, Commodity == "CORN" | Commodity == "SOYBEANS")
-  crop_damage_Lossperclaim <- subset(damage_lossperclaim, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Acres <- subset(damage_Acres, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Loss <- subset(damage_Loss, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Lossperacre <- subset(damage_Lossperacre, Commodity == "CORN" | Commodity == "SOYBEANS")
+  crop_damage_Lossperclaim <- subset(damage_Lossperclaim, Commodity == "CORN" | Commodity == "SOYBEANS")
   
   crop_damage_Acres <- aggregate(crop_damage_Acres[,5:38], by = list(crop_damage_Acres$State, crop_damage_Acres$County, crop_damage_Acres$Year), FUN = 'sum' )
   colnames(crop_damage_Acres)[1:3] <- c("State", "County", "Year")
@@ -316,7 +335,10 @@ SHEAF_model_data_creation <- function(losstype) {
   merge1 <- merge(eval(parse(text=paste("crop_damage_", losstype, sep=""))), agcensus, by = c("State", "County", "Year"))
   merge2 <- merge(eqip, merge1, by = c("State", "County", "Year") )
   merge3 <- merge(merge2, alc2, by = c("State", "County"))
-  merge4 <- merge(merge3, census, by = c("State", "County", "Year"))
+  merge3a <- merge(merge3, eqip_csp, by = c("State", "County", "Year"))
+  merge3b <- merge(merge3a, eqip_cons_security, by = c("State", "County", "Year"))
+  merge3c <- merge(merge3b, eqip_cons_steward, by = c("State", "County", "Year"))
+  merge4 <- merge(merge3c, census, by = c("State", "County", "Year"))
   merge5 <- merge(merge4, nri, by = c("State", "County", "Year"))
   merge6 <- merge(merge5, commodity_loss_total, by = c("State", "County", "Year"))
   merge6a <- merge(merge6, pdsi, by = c("State", "County"))
@@ -324,16 +346,16 @@ SHEAF_model_data_creation <- function(losstype) {
   merge6c <- merge(merge6b, cdl_div2, by = c("State", "County"))
   merge7 <- merge(merge6c, rented_land_revised,  by = c("State", "County"))
   
-  
-  
+  merge7 <- subset( merge7, select = -FIPS )
+
   
   merge7[is.na(merge7)] <- 0 
   
   colnames(merge7)[4:33] <- paste("EQIP_", colnames(merge7)[4:33], sep = "")
   colnames(merge7)[34:67] <- paste("RMA_", colnames(merge7)[34:67], sep = "")
-  colnames(merge7)[68:89] <- paste("AGCENSUS_", colnames(merge7)[68:89], sep = "")
-  colnames(merge7)[91:101] <- paste("CENSUS_", colnames(merge7)[91:101], sep = "")
-  colnames(merge7)[101:195] <- paste("NRI_", colnames(merge7)[101:195], sep = "")
+  colnames(merge7)[68:88] <- paste("AGCENSUS_", colnames(merge7)[68:88], sep = "")
+  colnames(merge7)[102:111] <- paste("CENSUS_", colnames(merge7)[102:111], sep = "")
+  colnames(merge7)[113:206] <- paste("NRI_", colnames(merge7)[113:206], sep = "")
   
   #--transformed variables
   
@@ -349,7 +371,7 @@ SHEAF_model_data_creation <- function(losstype) {
   
   library( taRifx )
   #make sure all exogenous variables are numeric and state and county are factors
-  merge8 <- japply( merge7[,4:215], which(sapply(merge7[,4:215], class)=="factor"), as.numeric )
+  merge8 <- japply( merge7[,4:226], which(sapply(merge7[,4:226], class)=="factor"), as.numeric )
   merge9 <- japply( merge8, which(sapply(merge8, class)=="integer"), as.numeric )
   
   merge9 <- cbind(merge7$State, merge7$County, merge7$Year, merge9)
@@ -379,8 +401,7 @@ SHEAF_model_data_creation <- function(losstype) {
   
   merge9 <- remove_zero_cols(merge9)
   
-  merge9 <- merge9[,-88] #remove FIPS
-  merge9 <- merge9[,-76] #remove FIPS
+  merge9 <- merge9[,-112] #remove FIPS
   
   
   merge9$AGCENSUS_CC_Cropland_Acres_Ratio <- log10(merge9$AGCENSUS_CC_Cropland_Acres_Ratio)
