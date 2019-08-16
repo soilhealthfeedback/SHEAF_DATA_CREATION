@@ -138,28 +138,42 @@ library(plyr)
   
   #EQIP-CSP
   
-  eqip_csp <- read.csv("https://files.sesync.org/index.php/s/5Rjpp4z5xe7KCC8/download")
-  eqip_csp$County <- tolower(eqip_csp$County)
-  eqip_csp$County <- sapply(eqip_csp$County, simpleCap)
-  eqip_csp <- eqip_csp[,2:8]
+  eqip_csp_revised <- read.csv("https://files.sesync.org/index.php/s/JQysQDBmLMcfrGd/download")
+  eqip_csp_revised_2010_2012 <- subset(eqip_csp_revised, fy == 2010 | fy == 2011 | fy == 2012)
+  eq_eqip_fa <- aggregate(eqip_csp_revised_2010_2012$EQIP_FA_PAYMENTS, by=list(eqip_csp_revised_2010_2012$State, eqip_csp_revised_2010_2012$County), FUN = "sum" )
+  eq_cstp <- aggregate(eqip_csp_revised_2010_2012$CStP_FA_Payments, by=list(eqip_csp_revised_2010_2012$State, eqip_csp_revised_2010_2012$County), FUN = "sum" )
+  colnames(eq_eqip_fa) <- c("State", "County", "EQIP_FA_PAYMENTS_total")
+  colnames(eq_cstp) <- c("State", "County", "CStP_FA_Payments_total")
+  eq_combined <- cbind(eq_eqip_fa, eq_cstp[,3])
+  colnames(eq_combined) <- c("State", "County", "EQIP_FA_PAYMENTS_total", "CStP_FA_Payments_total")
+  eq_combined[is.na(eq_combined)] <- 0 
+  eq_combined$EQIP_cstp_combined <- eq_combined$EQIP_FA_PAYMENTS_total + eq_combined$CStP_FA_Payments_total
+  
+  eq_combined$County <- tolower(eq_combined$County)
+  eq_combined$County <- sapply(eq_combined$County, simpleCap)
+  
+  #eqip_csp <- read.csv("https://files.sesync.org/index.php/s/5Rjpp4z5xe7KCC8/download")
+  #eqip_csp$County <- tolower(eqip_csp$County)
+  #eqip_csp$County <- sapply(eqip_csp$County, simpleCap)
+  #eqip_csp <- eqip_csp[,2:8]
   
   #remove extraneous columns other that state, year, county, and variables
   #eqip_csp <- cbind.data.frame(eqip_csp[,4], eqip_csp[,6], eqip_csp[,7:10])
-  colnames(eqip_csp) <- c("Year", "State", "County", "EQIP_CSP_Contracts", "EQIP_CSP_CONTRACT_ACRES", "EQIP_CSP_FA_OBLIGATIONS", "EQIP_CSP_FA_PAYMENTS" )
+  #colnames(eqip_csp) <- c("Year", "State", "County", "EQIP_CSP_Contracts", "EQIP_CSP_CONTRACT_ACRES", "EQIP_CSP_FA_OBLIGATIONS", "EQIP_CSP_FA_PAYMENTS" )
   
   #EQIP-Cons-security
   
-  eqip_cons_security <- read.csv("https://files.sesync.org/index.php/s/ZsX6SYFmc8Tsr77/download")
-  eqip_cons_security$County <- tolower(eqip_cons_security$County)
-  eqip_cons_security$County <- sapply(eqip_cons_security$County, simpleCap)
-  eqip_cons_security <- eqip_cons_security[,2:8]
+  #eqip_cons_security <- read.csv("https://files.sesync.org/index.php/s/ZsX6SYFmc8Tsr77/download")
+  #eqip_cons_security$County <- tolower(eqip_cons_security$County)
+  #eqip_cons_security$County <- sapply(eqip_cons_security$County, simpleCap)
+  #eqip_cons_security <- eqip_cons_security[,2:8]
   
   #EQIP-Cons-stewardship
   
-  eqip_cons_steward <- read.csv("https://files.sesync.org/index.php/s/oHnCkS5sDFgX44c/download")
-  eqip_cons_steward$County <- tolower(eqip_cons_steward$County)
-  eqip_cons_steward$County <- sapply(eqip_cons_steward$County, simpleCap)
-  eqip_cons_steward <- eqip_cons_steward[,2:8]
+  #eqip_cons_steward <- read.csv("https://files.sesync.org/index.php/s/oHnCkS5sDFgX44c/download")
+  #eqip_cons_steward$County <- tolower(eqip_cons_steward$County)
+  #eqip_cons_steward$County <- sapply(eqip_cons_steward$County, simpleCap)
+  #eqip_cons_steward <- eqip_cons_steward[,2:8]
   
   
   
@@ -312,8 +326,53 @@ library(plyr)
    #removes extraneous columns so we only have state and county and PDSI totals
    pdsi <- pdsi[,10:12]
    colnames(pdsi) <- c("State", "County", "PDSI_TOTALS")
-
    
+   #female operators
+   
+   femaleop <- read.csv("https://files.sesync.org/index.php/s/fZLfsteAExAg5PJ/download")
+   femaleop <- subset(femaleop, Year == "2012")   
+   femaleop <- femaleop[-1]
+   femaleop <- femaleop[-3]
+   
+   #diversity index
+   
+
+   racediversity <- read.csv("https://files.sesync.org/index.php/s/a2Hrd75kAeTWNaD/download")
+   subset(racediversity, year == "2012")
+   
+   racediversity$FIPS <- as.character(racediversity$FIPS)
+   racediversity <- merge(countyFIPS, racediversity, by=c("FIPS"))
+   racediversity <- cbind.data.frame(racediversity[,3], racediversity[,4], racediversity[,6])
+   colnames(racediversity) <- c("State", "County", "RACE_Entropy")
+   #
+   
+   #
+   #HDI
+  HDI <- read.csv("https://files.sesync.org/index.php/s/FGn3SZsZj7cLGEB/download")
+   
+  
+  
+  HDI$County <- gsub( " County", "", as.character(HDI$County))
+  HDI <- HDI[-1]
+  HDI <- HDI[-4]
+  
+  HDI <- HDI[-3]
+  
+  #farmproductioncosts
+  
+
+  FARMCOSTS <- read.csv("https://files.sesync.org/index.php/s/WafY7aqFo5zdbJt/download")
+  FARMCOSTS <- FARMCOSTS[-1]
+  FARMCOSTS$long_state <- as.character(FARMCOSTS$long_state)
+  FARMCOSTS$county <- as.character(FARMCOSTS$county)
+  
+  FARMCOSTS$State <- sapply(FARMCOSTS$long_state, simpleCap)
+  FARMCOSTS$County <- sapply(FARMCOSTS$county, simpleCap)
+  FARMCOSTS <- FARMCOSTS[-68]
+  FARMCOSTS <- FARMCOSTS[-68]
+  FARMCOSTS <- FARMCOSTS[-68]
+  
+  
    #cdl
    
    cdl_diversity <- read.csv("https://nextcloud.sesync.org/index.php/s/RWyocfcwpAobCrq/download")
@@ -370,11 +429,7 @@ library(plyr)
   #merge previous merge with ag landuse in cornbelt states
   merge3 <- merge(merge2, alc2, by = c("State", "County"))
   #merge previous merge with eqip_csp
-  merge3a <- merge(merge3, eqip_csp, by = c("State", "County", "Year"))
-  #merge previous merge with eqip_cons_security
-  merge3b <- merge(merge3a, eqip_cons_security, by = c("State", "County", "Year"))
-  #merge previous merge with eqip_cons_stewardship
-  merge3c <- merge(merge3b, eqip_cons_steward, by = c("State", "County", "Year"))
+  merge3c <- merge(merge3, eq_combined, by = c("State", "County"))
   #merge previous merge with census
   merge4 <- merge(merge3c, census, by = c("State", "County", "Year"))
   #merge previous merge with nri
@@ -391,9 +446,13 @@ library(plyr)
   merge7 <- merge(merge6c, rented_land_revised,  by = c("State", "County"))
   #merge previous merge with extreme precip for 2008-2012
   merge7a <- merge(merge7, precip_extreme, by = c("State", "County"))
+  merge7b <- merge(merge7a, HDI, by=c("State", "County"))
+  merge7c <- merge(merge7b, racediversity, by=c("State", "County"))
+  merge7d <- merge(merge7c, femaleop, by=c("State", "County"))
+  merge7e <- merge(merge7d, FARMCOSTS, by=c("State", "County"))
   
   #removes the FIPS column
-  merge7 <- subset( merge7a, select = -FIPS )
+  merge7 <- subset( merge7e, select = -FIPS )
 
   #converts NA to zero
   merge7[is.na(merge7)] <- 0 
@@ -404,8 +463,14 @@ library(plyr)
   colnames(merge7)[4:33] <- paste("EQIP_", colnames(merge7)[4:33], sep = "")
   colnames(merge7)[34:67] <- paste("RMA_", colnames(merge7)[34:67], sep = "")
   colnames(merge7)[68:88] <- paste("AGCENSUS_", colnames(merge7)[68:88], sep = "")
-  colnames(merge7)[102:111] <- paste("CENSUS_", colnames(merge7)[102:111], sep = "")
-  colnames(merge7)[113:206] <- paste("NRI_", colnames(merge7)[113:206], sep = "")
+  colnames(merge7)[90:92] <- paste("NRCS_", colnames(merge7)[90:92], sep = "")
+  
+  colnames(merge7)[93:102] <- paste("CENSUS_", colnames(merge7)[93:102], sep = "")
+  colnames(merge7)[103:196] <- paste("NRI_", colnames(merge7)[103:196], sep = "")
+  colnames(merge7)[219:222] <- paste("HDI_", colnames(merge7)[219:222], sep = "")
+  colnames(merge7)[224:226] <- paste("FEMALE_", colnames(merge7)[224:226], sep = "")
+  colnames(merge7)[227:293] <- paste("FEMALE_", colnames(merge7)[227:293], sep = "")
+  
   
   #--transformed variables
   
@@ -419,7 +484,7 @@ library(plyr)
   
   library( taRifx )
   #make sure all independent variables are numeric and state and county are factors
-  merge8 <- japply( merge7[,4:228], which(sapply(merge7[,4:228], class)=="factor"), as.numeric )
+  merge8 <- japply( merge7[,4:293], which(sapply(merge7[,4:293], class)=="factor"), as.numeric )
   merge9 <- japply( merge8, which(sapply(merge8, class)=="integer"), as.numeric )
   
   #puts independent variables and factors (year, state, county, back together)
