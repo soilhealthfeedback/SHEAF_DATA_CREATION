@@ -525,14 +525,14 @@ library(plyr)
   #merge9$AGCENSUS_NOTILL_Cropland_Acres_Ratio <- log10(merge9$AGCENSUS_notill_acres/data2$AGCENSUS_Cropland_Acres)
   
   #scales and centers the full output in case thats effective.  Creates a separate file
-  
+  merge9a <- merge9
   scaled_merge10 <- merge9[, -c(1:3)] <- scale(merge9[, -c(1:3)], center = TRUE, scale = TRUE)
   
   
   #write the combined file to the model_data location for SEM
   #for both scaled and non-scaled.  TWO files are generated below.
   
-  write.csv(merge9, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model", "_nonscaled.csv", sep=""))
+  write.csv(merge9a, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model", "_nonscaled.csv", sep=""))
   write.csv(scaled_merge10, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model", "_scaled.csv", sep=""))
   
 
