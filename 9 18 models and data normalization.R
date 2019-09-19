@@ -1,6 +1,8 @@
+library(e1071)
+library(forecast)
 #fit model with scaled data
-soilscaled<-read.csv("C:\\Users\\kjone\\OneDrive\\Desktop\\Soil health team\\MIDWEST_CORN_SOYBEANS_Model2_scaled_new.csv", header=T)
-soilnonscaled<-read.csv("C:\\Users\\kjone\\OneDrive\\Desktop\\Soil health team\\MIDWEST_CORN_SOYBEANS_Model2_nonscaled_new.csv", header=T)
+soilscaled<-read.csv("https://files.sesync.org/index.php/s/Y8mwK98kkajNafs/download", header=T)
+soilnonscaled<-read.csv("https://files.sesync.org/index.php/s/L2iX5GC85JbYGwZ/download", header=T)
 #reduce skew in dependent variables
 #cover crops
 skewness(soilnonscaled$AGCENSUS_Cover_Acres_Ratio, na.rm=T)
@@ -196,3 +198,6 @@ Land_Costs ~~ Equipment_Services'
 
 fitmodel61<-sem(model61,data=soilscaled)
 summary(fitmodel61, fit.measures=T, standardized=T)
+
+semPlot::semPaths(fitmodel61, "std",   bifactor = "g",  fade = FALSE, style = "lisrel", label.cex = 3, nCharNodes = 10, what = "std", layout="tree", curvePivot = TRUE, edge.label.cex=.85)
+summary(fitmodel61, fit.measures = TRUE)
