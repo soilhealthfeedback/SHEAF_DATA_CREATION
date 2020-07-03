@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 EXPLORATORY DATA ANALYSIS AND DATA EXTRACTION
 =======
 
@@ -27,3 +28,12 @@ NOTE: the local version of this function uses local pathways vs. a downloadable 
     SHEAF_model_data_creation_local ("WHEAT")
 
 Otherwise, use SHEAF_model_data_creation.R
+=======
+# SHEAF_SEM
+<<<<<<< HEAD
+
+SHEAF SEM code management
+=======
+SHEAF structural equation modeling code
+>>>>>>> 59334e2636e6000d2908edf01d09fdf90058a87d
+>>>>>>> 85d499fe3367257d5a274b958a1d38e45a5cff2f

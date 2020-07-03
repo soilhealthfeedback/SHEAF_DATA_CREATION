@@ -584,9 +584,9 @@ arrange.vars <- function(data, vars){
   
   #farmproductioncosts
   
-
-  FARMCOSTS <- read.csv("https://files.sesync.org/index.php/s/WafY7aqFo5zdbJt/download")
-  FARMCOSTS <- FARMCOSTS[-1]
+  
+  FARMCOSTS <- read.csv("https://files.sesync.org/index.php/s/cK5Xgp7Axqx3zs6/download")
+  #FARMCOSTS <- FARMCOSTS[-1]
   FARMCOSTS$long_state <- as.character(FARMCOSTS$long_state)
   FARMCOSTS$county <- as.character(FARMCOSTS$county)
   
@@ -595,17 +595,20 @@ arrange.vars <- function(data, vars){
   FARMCOSTS <- FARMCOSTS[-68]
   FARMCOSTS <- FARMCOSTS[-68]
   FARMCOSTS <- FARMCOSTS[-68]
+  FARMCOSTS <- FARMCOSTS[-68]
+  FARMCOSTS <- FARMCOSTS[-68]
+  FARMCOSTS <- FARMCOSTS[-69]
   
-  FARMCOSTS <- merge(FARMCOSTS, countyFIPS, by=c("State", "County"))
-  FARMCOSTS <- cbind.data.frame(FARMCOSTS[,3:69], FARMCOSTS[,71])
-  colnames(FARMCOSTS)[68] <- "Fips"
+  #FARMCOSTS <- merge(FARMCOSTS, countyFIPS, by=c("State", "County"))
+  #FARMCOSTS <- cbind.data.frame(FARMCOSTS[,3:69], FARMCOSTS[,71])
+  colnames(FARMCOSTS)[1] <- "Fips"
   
-  FARMCOSTS <- merge(FARMCOSTS, countyFIPS, by = "Fips")
+  #FARMCOSTS <- merge(FARMCOSTS, countyFIPS, by = "Fips")
   
   FARMCOSTS <- subset(FARMCOSTS, State == "Illinois" | State == "Indiana" | State == "Iowa" | State == "Michigan" | State == "Minnesota" | State == "Missouri" | State == "Ohio" | State == "Wisconsin" | State == "Nebraska"| State == "Kansas" 
                 | State == "North Dakota" | State == "South Dakota")
   
-  FARMCOSTS <- FARMCOSTS[-(69:71)]
+  FARMCOSTS <- FARMCOSTS[-(68)]
   
    #cdl
   
@@ -721,10 +724,90 @@ soils <- subset(soils, State == "Illinois" | State == "Indiana" | State == "Iowa
 
 soils <- soils[-2]
 soils <- soils[-(8:10)]
- 
+
+#--agcensus tables provided by J. Arbuckle in October 2019.  
+
+agcensus_table1 <- read.csv2("https://files.sesync.org/index.php/s/tFRELytxbWAgyMY/download", header = TRUE, sep = ",")
+agcensus_table1 <- agcensus_table1[-2]
+agcensus_table1 <- agcensus_table1[-2]
+agcensus_table1 <- agcensus_table1[-2]
+
+colnames(agcensus_table1) <- c("Fips", "Type", "Value" )
+
+agcensus_table1 <- subset(agcensus_table1, Type == "Commodity credit corporation loans \\ Total ($1,000, 2012)" | 
+                            Type == "Government payments \\ Total received \\ Amount from conservation reserve, wetlands reserve, farmable wetlands, and conservation reserve enhancement programs ($1,000, 2012)" | 
+                            Type == "Government payments \\ Total received \\ Amount from conservation reserve, wetlands reserve, farmable wetlands, and conservation reserve enhancement programs \\ Average per farm (dollars, 2012)" | 
+                            Type == "Government payments \\ Total received \\ Amount from other federal farm programs ($1,000, 2012)" | 
+                            Type == "Government payments \\ Total received \\ Amount from other federal farm programs \\ Average per farm (dollars, 2012)"  | 
+                            Type == "Government payments \\ Total received \\ Average per farm (dollars, 2012)")
+
+levels(agcensus_table1$Type)[levels(agcensus_table1$Type)=="Commodity credit corporation loans \\ Total ($1,000, 2012)"] <- "corp_loans_2012"
+levels(agcensus_table1$Type)[levels(agcensus_table1$Type)=="Government payments \\ Total received \\ Amount from conservation reserve, wetlands reserve, farmable wetlands, and conservation reserve enhancement programs ($1,000, 2012)"] <- "payments_reserve_total_2012"
+levels(agcensus_table1$Type)[levels(agcensus_table1$Type)=="Government payments \\ Total received \\ Amount from conservation reserve, wetlands reserve, farmable wetlands, and conservation reserve enhancement programs \\ Average per farm (dollars, 2012)"] <- "payments_reserve_aveperfarm_2012"
+levels(agcensus_table1$Type)[levels(agcensus_table1$Type)=="Government payments \\ Total received \\ Amount from other federal farm programs ($1,000, 2012)"] <- "payments_fedfarmprograms_total_2012"
+levels(agcensus_table1$Type)[levels(agcensus_table1$Type)=="Government payments \\ Total received \\ Amount from other federal farm programs \\ Average per farm (dollars, 2012)"] <- "payments_fedfarmprograms_aveperfarm_2012"
+levels(agcensus_table1$Type)[levels(agcensus_table1$Type)=="Government payments \\ Total received \\ Average per farm (dollars, 2012)"] <- "payments_received_aveperfarm_2012"
+
+agcensus_table1$Type <- factor(agcensus_table1$Type)
+agcensus_table1$Value <- as.numeric(agcensus_table1$Value)
+
+#agcensus_table1 <- merge(agcensus_table1, countyFIPS, by = "Fips")
+
+library(reshape2) ; agcensus_table1 <- dcast(agcensus_table1, Fips ~ Type, value.var = "Value", sum)
+
+
+#state summaries
+
+agcensus_table2 <- read.csv2("https://files.sesync.org/index.php/s/jc6nCzbqHqanzoD/download", header = TRUE, sep = ",")
+
+agcensus_table2 <- agcensus_table2[-2]
+agcensus_table2 <- agcensus_table2[-2]
+agcensus_table2 <- agcensus_table2[-2]
+
+colnames(agcensus_table2) <- c("Fips", "Type", "Value" )
+
+agcensus_table2 <- subset(agcensus_table2, Type == "Land in farms \\ Average size of farm (acres)" | 
+                            Type == "Land in farms \\ Median size of farm (acres)" | 
+                            Type == "Estimated market value of land and buildings \\ Average per farm (dollars)" | 
+                            Type == "Estimated market value of land and buildings \\ Average per acre (dollars)"  | 
+                            Type == "Estimated market value of all machinery and equipment \\ Average per farm (dollars)" |
+                            Type == "Market value of agricultural products sold (see text) \\ Average per farm (dollars)" |
+  Type == "Market value of agricultural products sold (see text) \\ Crops, including nursery and greenhouse crops ($1,000)" |
+  Type == "Market value of agricultural products sold (see text) \\ Livestock, poultry, and their products ($1,000)" |
+  Type == "Total income from farm-related sources, gross before taxes and expenses (see text) ($1,000)" |
+  Type == "Total farm production expenses ($1,000)" |
+  Type == "Total farm production expenses \\ Average per farm (dollars)" |
+  Type == "Net cash farm income of operation (see text) \\ Average per farm (dollars)")
+  
+
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Land in farms \\ Average size of farm (acres)"] <- "farmland_avesizefarm"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Land in farms \\ Median size of farm (acres)"] <- "farmland_mediansizefarm"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Estimated market value of land and buildings \\ Average per farm (dollars)"] <- "marketvalue_aveperfarm"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Estimated market value of land and buildings \\ Average per acre (dollars)"] <- "marketvalue_aveperacre"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Estimated market value of all machinery and equipment \\ Average per farm (dollars)"] <- "marketvalue_equip_aveperfarm"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Market value of agricultural products sold (see text) \\ Average per farm (dollars)"] <- "marketvalue_agproducts_aveperfarm"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Market value of agricultural products sold (see text) \\ Crops, including nursery and greenhouse crops ($1,000)"] <- "marketvalue_agproducts_crops"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Market value of agricultural products sold (see text) \\ Livestock, poultry, and their products ($1,000)"] <- "marketvalue_agproducts_livestock"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Total income from farm-related sources, gross before taxes and expenses (see text) ($1,000)"] <- "income_farmsources_gross"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Total farm production expenses ($1,000)"] <- "farm_expenses"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Total farm production expenses \\ Average per farm (dollars)"] <- "farmproduction_aveperfarm"
+levels(agcensus_table2$Type)[levels(agcensus_table2$Type)=="Net cash farm income of operation (see text) \\ Average per farm (dollars)"] <- "netincome_aveperfarm"
+
+
+
+agcensus_table2$Type <- factor(agcensus_table2$Type)
+agcensus_table2$Value <- as.numeric(agcensus_table2$Value)
+
+#agcensus_table2 <- merge(agcensus_table2, countyFIPS, by = "Fips")
+
+library(reshape2) ; agcensus_table2 <- dcast(agcensus_table2, Fips ~ Type, value.var = "Value", sum)
+
+
    #--MERGE!
   
   library(tidyverse)
+
+ losstype <- "Acres"
   
   #merge acensus with RMA damages.  Need to define WHICH losstype: Acres, loss, lossperacre, lossperclaim
   merge1 <- merge(eval(parse(text=paste("crop_damage_", losstype, sep=""))), agcensus, by = c("Fips", "Year"), all=T)
@@ -757,8 +840,12 @@ soils <- soils[-(8:10)]
   merge7e <- merge(merge7d, FARMCOSTS, by=c("Fips"), all=T)
   merge7f <- merge(merge7e, RMA_revised, by=c("Fips"), all=T)
   merge7f1 <- merge(merge7f, soils, by=c("Fips"), all=T)
+  merge7f2 <- merge(merge7f1, agcensus_table1, by=c("Fips"), all=T)
+  merge7f3 <- merge(merge7f2, agcensus_table2, by=c("Fips"), all=T)
   
-  merge7f <- subset(merge7f1, Year.x == "2012")
+  
+  
+  merge7f <- subset(merge7f3, Year.x == "2012")
   
   
   merge7f <- merge(merge7f, countyFIPS, by=c("Fips"))
@@ -776,31 +863,37 @@ soils <- soils[-(8:10)]
   
   merge7 <- merge7f
   
-#this adds a prefix to a set of datasets.  Make sure to change the column strings if you
-#happen to add other datasets.
+#removing a bunch of extraneous columns that are mostly ID, and duplicate state and county and year columns
   
-  merge7 <- merge7[-92]
-  merge7 <- merge7[-96]
-  merge7 <- merge7[-106]
-  merge7 <- merge7[-106]
-  merge7 <- merge7[-106]
-  merge7 <- merge7[-200]
-  merge7 <- merge7[-207]
-  merge7 <- merge7[-221]
-  merge7 <- merge7[-221]
-  merge7 <- merge7[-221]
-  merge7 <- merge7[-226] 
-  merge7 <- merge7[-226] 
-  merge7 <- merge7[-226]
+  merge7 <- merge7[, -c(92,97,108,109,110,205,213,228,229,230,236,237,238,339)]
+  
+  
+ # merge7 <- merge7[-92]
+#  merge7 <- merge7[-96]
+#  merge7 <- merge7[-106]
+#  merge7 <- merge7[-106]
+#  merge7 <- merge7[-106]
+#  merge7 <- merge7[-200]
+#  merge7 <- merge7[-207]
+#  merge7 <- merge7[-221]
+#  merge7 <- merge7[-221]
+#  merge7 <- merge7[-221]
+#  merge7 <- merge7[-226] 
+#  merge7 <- merge7[-226] 
+#  merge7 <- merge7[-226]
+#  merge7 <- merge7[-308]
+  
  
- 
   
   
-  colnames(merge7)[310] <- "State"
-  colnames(merge7)[311] <- "County"
+  colnames(merge7)[326] <- "State"
+  colnames(merge7)[327] <- "County"
   
   
   colnames(merge7)[2] <- "Year"
+  
+  #this adds a prefix to a set of datasets.  Make sure to change the column strings if you
+  #happen to add other datasets.
   
   colnames(merge7)[3:32] <- paste("EQIP_", colnames(merge7)[3:32], sep = "")
   colnames(merge7)[33:66] <- paste("RMA_", colnames(merge7)[33:66], sep = "")
@@ -811,9 +904,13 @@ soils <- soils[-(8:10)]
   colnames(merge7)[106:199] <- paste("NRI_", colnames(merge7)[106:199], sep = "")
   colnames(merge7)[221:224] <- paste("HDI_", colnames(merge7)[221:224], sep = "")
   colnames(merge7)[226:228] <- paste("FEMALE_", colnames(merge7)[226:228], sep = "")
-  colnames(merge7)[229:295] <- paste("FARMCOSTS_", colnames(merge7)[229:295], sep = "")
-  colnames(merge7)[296:302] <- paste("RMA_revised_", colnames(merge7)[296:302], sep = "")
-  colnames(merge7)[303:309] <- paste("SOILS_", colnames(merge7)[303:309], sep = "")
+  colnames(merge7)[229:294] <- paste("FARMCOSTS_", colnames(merge7)[229:294], sep = "")
+  colnames(merge7)[295:301] <- paste("RMA_revised_", colnames(merge7)[295:301], sep = "")
+  colnames(merge7)[302:307] <- paste("SOILS_", colnames(merge7)[302:307], sep = "")
+  colnames(merge7)[308:313] <- paste("PAYMENTS_", colnames(merge7)[308:313], sep = "")
+  colnames(merge7)[314:325] <- paste("FARMVALUE_", colnames(merge7)[314:325], sep = "")
+  
+  
   
   #--transformed variables
   
@@ -832,7 +929,7 @@ soils <- soils[-(8:10)]
   
   library( taRifx )
   #make sure all independent variables are numeric and state and county are factors
-  merge8 <- japply( merge7[,5:314], which(sapply(merge7[,5:314], class)=="factor"), as.numeric )
+  merge8 <- japply( merge7[,5:330], which(sapply(merge7[,5:330], class)=="factor"), as.numeric )
   merge9 <- japply( merge8, which(sapply(merge8, class)=="integer"), as.numeric )
   
   #puts independent variables and factors (year, state, county, back together)
@@ -884,8 +981,8 @@ soils <- soils[-(8:10)]
   #write the combined file to the model_data location for SEM
   #for both scaled and non-scaled.  TWO files are generated below.
   
-  write.csv(merge9a, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model2", "_nonscaled_new.csv", sep=""))
-  write.csv(scaled_merge10, file = paste("/nfs/soilsesfeedback-data/model_data/MIDWEST_", croplist_name, "_Model2", "_scaled_new.csv", sep=""))
+  write.csv(merge9a, file = paste("/nfs/soilsesfeedback-data/Model_data/MIDWEST_", croplist_name, "_Model2", "_nonscaled_new.csv", sep=""))
+  write.csv(scaled_merge10, file = paste("/nfs/soilsesfeedback-data/Model_data/MIDWEST_", croplist_name, "_Model2", "_scaled_new.csv", sep=""))
   
 
   
